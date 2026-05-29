@@ -389,11 +389,13 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
         CGSize size = [layout textBoundingSize];
         BOOL needDraw = size.width > 1 && size.height > 1;
         if (needDraw) {
-            UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-            CGContextRef context = UIGraphicsGetCurrentContext();
-            [layout drawInContext:context size:size debug:self.debugOption];
-            UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-            UIGraphicsEndImageContext();
+            UIGraphicsImageRendererFormat *format = [[UIGraphicsImageRendererFormat alloc] init];
+            format.scale = [UIScreen mainScreen].scale;
+            format.opaque = NO;
+            UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:format];
+            UIImage *image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *rendererContext) {
+                [layout drawInContext:rendererContext.CGContext size:size debug:self.debugOption];
+            }];
             _placeHolderView.image = image;
             frame.size = image.size;
             if (container.isVerticalForm) {

@@ -89,31 +89,35 @@
         CGRect rect = (CGRect) {.size = size, .origin = CGPointZero};
         rect = CGRectInset(rect, kPadding, kPadding);
         
-        UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-        CGContextRef context = UIGraphicsGetCurrentContext();
-        
-        CGPathRef boxPath = CGPathCreateWithRect(CGRectMake(0, 0, size.width, size.height), NULL);
-        CGPathRef fillPath = CGPathCreateWithEllipseInRect(rect, NULL);
-        CGPathRef strokePath = CGPathCreateWithEllipseInRect(YYTextCGRectPixelHalf(rect), NULL);
-        
-        // inner shadow
-        CGContextSaveGState(context); {
-            CGFloat blurRadius = 25;
-            CGSize offset = CGSizeMake(0, 15);
-            CGColorRef shadowColor = [UIColor colorWithWhite:0 alpha:0.16].CGColor;
-            CGColorRef opaqueShadowColor = CGColorCreateCopyWithAlpha(shadowColor, 1.0);
-            CGContextAddPath(context, fillPath);
-            CGContextClip(context);
-            CGContextSetAlpha(context, CGColorGetAlpha(shadowColor));
-            CGContextBeginTransparencyLayer(context, NULL); {
-                CGContextSetShadowWithColor(context, offset, blurRadius, opaqueShadowColor);
-                CGContextSetBlendMode(context, kCGBlendModeSourceOut);
-                CGContextSetFillColorWithColor(context, opaqueShadowColor);
+        UIGraphicsImageRendererFormat *fmt = [[UIGraphicsImageRendererFormat alloc] init];
+        fmt.scale = [UIScreen mainScreen].scale;
+        fmt.opaque = NO;
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:fmt];
+        image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *rendererContext) {
+            CGContextRef context = rendererContext.CGContext;
+
+            CGPathRef boxPath = CGPathCreateWithRect(CGRectMake(0, 0, size.width, size.height), NULL);
+            CGPathRef fillPath = CGPathCreateWithEllipseInRect(rect, NULL);
+            CGPathRef strokePath = CGPathCreateWithEllipseInRect(YYTextCGRectPixelHalf(rect), NULL);
+
+            // inner shadow
+            CGContextSaveGState(context); {
+                CGFloat blurRadius = 25;
+                CGSize offset = CGSizeMake(0, 15);
+                CGColorRef shadowColor = [UIColor colorWithWhite:0 alpha:0.16].CGColor;
+                CGColorRef opaqueShadowColor = CGColorCreateCopyWithAlpha(shadowColor, 1.0);
                 CGContextAddPath(context, fillPath);
-                CGContextFillPath(context);
-            } CGContextEndTransparencyLayer(context);
-            CGColorRelease(opaqueShadowColor);
-        } CGContextRestoreGState(context);
+                CGContextClip(context);
+                CGContextSetAlpha(context, CGColorGetAlpha(shadowColor));
+                CGContextBeginTransparencyLayer(context, NULL); {
+                    CGContextSetShadowWithColor(context, offset, blurRadius, opaqueShadowColor);
+                    CGContextSetBlendMode(context, kCGBlendModeSourceOut);
+                    CGContextSetFillColorWithColor(context, opaqueShadowColor);
+                    CGContextAddPath(context, fillPath);
+                    CGContextFillPath(context);
+                } CGContextEndTransparencyLayer(context);
+                CGColorRelease(opaqueShadowColor);
+            } CGContextRestoreGState(context);
         
         // outer shadow
         CGContextSaveGState(context); {
@@ -140,10 +144,8 @@
         CFRelease(boxPath);
         CFRelease(fillPath);
         CFRelease(strokePath);
-        
-        image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        
+
+        }];
     });
     return image;
 }
@@ -237,25 +239,29 @@
         CGSize size = kSize;
         CGRect rect = (CGRect) {.size = size, .origin = CGPointZero};
         
-        UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-        CGContextRef context = UIGraphicsGetCurrentContext();
-        
-        CGPathRef boxPath = CGPathCreateWithRect(rect, NULL);
-        
-        CGMutablePathRef path = CGPathCreateMutable();
-        CGPathMoveToPoint(path, NULL, kPadding + kRadius, kPadding);
-        CGPathAddLineToPoint(path, NULL, size.width - kPadding - kRadius, kPadding);
-        CGPathAddQuadCurveToPoint(path, NULL, size.width - kPadding, kPadding, size.width - kPadding, kPadding + kRadius);
-        CGPathAddLineToPoint(path, NULL, size.width - kPadding, kHeight);
-        CGPathAddCurveToPoint(path, NULL, size.width - kPadding, kPadding + kHeight, size.width - kPadding - kRadius, kPadding + kHeight, size.width - kPadding - kRadius, kPadding + kHeight);
-        CGPathAddLineToPoint(path, NULL, size.width / 2 + kArrow, kPadding + kHeight);
-        CGPathAddLineToPoint(path, NULL, size.width / 2, kPadding + kHeight + kArrow);
-        CGPathAddLineToPoint(path, NULL, size.width / 2 - kArrow, kPadding + kHeight);
-        CGPathAddLineToPoint(path, NULL, kPadding + kRadius, kPadding + kHeight);
-        CGPathAddQuadCurveToPoint(path, NULL, kPadding, kPadding + kHeight, kPadding, kHeight);
-        CGPathAddLineToPoint(path, NULL, kPadding, kPadding + kRadius);
-        CGPathAddQuadCurveToPoint(path, NULL, kPadding, kPadding, kPadding + kRadius, kPadding);
-        CGPathCloseSubpath(path);
+        UIGraphicsImageRendererFormat *fmt = [[UIGraphicsImageRendererFormat alloc] init];
+        fmt.scale = [UIScreen mainScreen].scale;
+        fmt.opaque = NO;
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:fmt];
+        image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *rendererContext) {
+            CGContextRef context = rendererContext.CGContext;
+
+            CGPathRef boxPath = CGPathCreateWithRect(rect, NULL);
+
+            CGMutablePathRef path = CGPathCreateMutable();
+            CGPathMoveToPoint(path, NULL, kPadding + kRadius, kPadding);
+            CGPathAddLineToPoint(path, NULL, size.width - kPadding - kRadius, kPadding);
+            CGPathAddQuadCurveToPoint(path, NULL, size.width - kPadding, kPadding, size.width - kPadding, kPadding + kRadius);
+            CGPathAddLineToPoint(path, NULL, size.width - kPadding, kHeight);
+            CGPathAddCurveToPoint(path, NULL, size.width - kPadding, kPadding + kHeight, size.width - kPadding - kRadius, kPadding + kHeight, size.width - kPadding - kRadius, kPadding + kHeight);
+            CGPathAddLineToPoint(path, NULL, size.width / 2 + kArrow, kPadding + kHeight);
+            CGPathAddLineToPoint(path, NULL, size.width / 2, kPadding + kHeight + kArrow);
+            CGPathAddLineToPoint(path, NULL, size.width / 2 - kArrow, kPadding + kHeight);
+            CGPathAddLineToPoint(path, NULL, kPadding + kRadius, kPadding + kHeight);
+            CGPathAddQuadCurveToPoint(path, NULL, kPadding, kPadding + kHeight, kPadding, kHeight);
+            CGPathAddLineToPoint(path, NULL, kPadding, kPadding + kRadius);
+            CGPathAddQuadCurveToPoint(path, NULL, kPadding, kPadding, kPadding + kRadius, kPadding);
+            CGPathCloseSubpath(path);
         
         CGMutablePathRef arrowPath = CGPathCreateMutable();
         CGPathMoveToPoint(arrowPath, NULL, size.width / 2 - kArrow, YYTextCGFloatPixelFloor(kPadding) + kHeight);
@@ -314,10 +320,8 @@
         CFRelease(boxPath);
         CFRelease(path);
         CFRelease(arrowPath);
-        
-        image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        
+
+        }];
     });
     return image;
 }
